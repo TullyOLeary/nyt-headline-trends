@@ -1,4 +1,4 @@
-# From Words to Trends: Capturing the Pulse of Today’s News
+# [From Words to Trends: Capturing the Pulse of Today’s News](https://medium.com/@tullyro/from-words-to-trends-capturing-the-pulse-of-todays-news-39803a4186e0)
 
 ## [Live Visualization](https://nyt-headline-trends-7042762eac8e.herokuapp.com/)
 ![NYT Word Cloud Visualization](NYT-Word-Cloud-Visualization.png)
@@ -65,6 +65,7 @@ In an era of information overload, it’s easy to lose sight of the bigger pictu
 
 This project also showcases my ability to build a complete data pipeline, from data ingestion and processing to real-time web deployment, leveraging both NLP techniques and web development.
 
+For more in-depth insights and analysis on how I approached this project, you can read my detailed article on Medium [here](https://medium.com/@tullyro/from-words-to-trends-capturing-the-pulse-of-todays-news-39803a4186e0).
 ## File Descriptions
 * `app.py`: The main Flask application that handles routing, enqueues tasks, and renders the processed results in a web interface.
 * `formatted_lines.py`: Contains the core NLP logic for fetching and processing articles, including word frequency analysis and text formatting.
@@ -126,6 +127,8 @@ To deploy the app on Heroku yourself:
 This project is licensed under the MIT License.
 
 **Authors:** Tully O'Leary tullyro@gmail.com
+
+I’ve also written a more detailed overview of this project on Medium, which you can read [here](https://medium.com/@tullyro/from-words-to-trends-capturing-the-pulse-of-todays-news-39803a4186e0).
 
 **Acknowledgements:**
 

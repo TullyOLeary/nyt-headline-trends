@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line Adjustment with Dynamic Calculations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <!-- Bordered container wrapping just the first set of lines -->
+    <div class="bordered-container">
+        <div id="text-container" class="first-set"></div>
+    </div>
+
+    <div id="original-lines-container"></div>
+
+    <h2 style="color: white;">Line Lengths (in pixels)</h2> <!-- Hide the headline -->
+    <div id="lengths"></div>
+
+    <!-- Inline the JavaScript code here for testing -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Fetch the data directly passed from Flask
+            const originalLines = {{ lines | tojson }};
+            console.log(originalLines);
+            const fontSizes = {{ font_sizes | tojson }};
+
+            // Your existing logic here
+            const originalLinesContainer = document.getElementById('original-lines-container');
+            const lengthsContainer = document.getElementById('lengths');
+
+            // Display the original lines with font sizes
+            originalLines.forEach((line, index) => {
+                const div = document.createElement('div');
+                div.className = 'line';
+                div.style.fontSize = `${fontSizes[index]}px`;
+                div.textContent = line;
+                originalLinesContainer.appendChild(div);
+            });
+
+            // Calculate the original lengths based on the second section
+            const originalLengths = [];
+            const spaceLengths = [];
+
+            document.querySelectorAll('#original-lines-container .line').forEach((line, index) => {
+                const width = line.offsetWidth;
+                const characterCount = line.textContent.trim().length;
+                const spaceLength = characterCount > 0 ? Math.ceil(width / characterCount) : 0;
+
+                originalLengths.push(width);
+                spaceLengths.push(spaceLength);
+            });
+
+            // Display the original lengths in the lengths container
+            originalLengths.forEach(length => {
+                const div = document.createElement('div');
+                div.textContent = length;
+                lengthsContainer.appendChild(div);
+            });
+
+            // Now use these calculated lengths for the first section
+            const lastElevenLengths = originalLengths.slice(-11);
+            const lastElevenSpaceLengths = spaceLengths.slice(-11);
+
+            // Clear the first container to apply the adjustments later
+            const textContainer = document.getElementById('text-container');
+            textContainer.innerHTML = '';
+
+            adjustAndDisplayLines(originalLines.slice(-11), lastElevenLengths, lastElevenSpaceLengths);
+
+            function adjustAndDisplayLines(originalLines, originalLengths, spaceLengths) {
+                console.log("Original Lines (Last 11):", originalLines); // Debugging
+                console.log("Original Lengths (Last 11):", originalLengths); // Debugging
+                console.log("Space Lengths (Last 11):", spaceLengths); // Debugging
+
+                const spaceAdjustments = Array(originalLengths.length).fill(0);
+                const pixelRange = 50;
+
+                // Step 1: Calculate space adjustments for the last 6 lines
+                for (let i = originalLengths.length - 1; i > 4; i--) {
+                    let currentLength = originalLengths[i - 1] + spaceAdjustments[i - 1] * spaceLengths[i - 1];
+                    let nextLineLength = originalLengths[i] + spaceAdjustments[i] * spaceLengths[i];
+                    let spaceLength = spaceLengths[i - 1];
+
+                    if (currentLength <= nextLineLength) {
+                        let spaceNeeded = nextLineLength - currentLength + 15;
+                        spaceAdjustments[i - 1] += Math.ceil(spaceNeeded / spaceLength);
+                    }
+                }
+
+                // Adjusted lengths after Step 1
+                const adjustedLengthsLastSix = originalLengths.map((length, i) => length + spaceAdjustments[i] * spaceLengths[i]);
+
+                // Step 2: Calculate space adjustments for lines 3 to 6 to match the same length
+                const maxLengthGrouped = Math.max(...adjustedLengthsLastSix.slice(2, 6));
+                for (let i = 2; i < 6; i++) {
+                    const currentLength = adjustedLengthsLastSix[i];
+                    if (currentLength < maxLengthGrouped) {
+                        const difference = maxLengthGrouped - currentLength;
+                        spaceAdjustments[i] += Math.ceil(difference / spaceLengths[i]);
+                    }
+                }
+
+                // Adjusted lengths after Step 2
+                const adjustedLengthsGrouped = originalLengths.map((length, i) => length + spaceAdjustments[i] * spaceLengths[i]);
+
+                // Step 3: Calculate space adjustments for descending lengths within a pixel range
+                let currentLength = adjustedLengthsGrouped[5];
+                for (let i = 5; i < adjustedLengthsGrouped.length; i++) {
+                    const upperLimit = currentLength - 10;
+                    const lowerLimit = Math.max(upperLimit - pixelRange, 0);
+
+                    if (!(lowerLimit <= adjustedLengthsGrouped[i] && adjustedLengthsGrouped[i] <= upperLimit)) {
+                        const pixelsNeeded = upperLimit - adjustedLengthsGrouped[i];
+                        if (pixelsNeeded > 0) {
+                            spaceAdjustments[i] += Math.ceil(pixelsNeeded / spaceLengths[i]);
+                        }
+                    }
+
+                    currentLength = adjustedLengthsGrouped[i];
+                }
+
+                // Calculate the new lengths
+                const newLengths = originalLengths.map((length, i) => length + spaceAdjustments[i] * spaceLengths[i]);
+                console.log("New Lengths:", newLengths); // Debugging
+
+                // Apply space adjustments to the original lines
+                const finalLines = originalLines.map((line, i) => {
+                    const spacesNeeded = spaceAdjustments[i];
+                    const words = line.split(' ');
+                    const numGaps = words.length - 1;
+
+                    if (numGaps === 0) return line;
+
+                    const baseSpaces = Math.floor(spacesNeeded / numGaps);
+                    const additionalSpaceCount = spacesNeeded % numGaps;
+
+                    const newWords = [];
+                    for (let j = 0; j < words.length - 1; j++) {
+                        newWords.push(words[j]);
+                        newWords.push(' '.repeat(1 + baseSpaces + (j < additionalSpaceCount ? 1 : 0))); // Adjust space insertion here
+                    }
+                    newWords.push(words[words.length - 1]);
+
+                    return newWords.join(''); // Join without extra spaces
+                });
+
+                // Convert lines to HTML using non-breaking spaces
+                const htmlLines = finalLines.map(line => line.replace(/ /g, "&nbsp;"));
+
+                // Pass the adjusted lines to the function that applies font sizes
+                displayLinesWithFontSizes(htmlLines);
+            }
+
+            function displayLinesWithFontSizes(finalLines) {
+                // Use the passed font sizes from Flask
+                finalLines.forEach((line, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'line';
+                    div.style.fontSize = `${fontSizes[index + (fontSizes.length - 11)]}px`; // Adjust index for the last 11 font sizes
+                    div.innerHTML = line; // Use innerHTML to preserve the &nbsp; spaces
+                    textContainer.appendChild(div);
+                });
+
+                console.log("Lines Generated and Displayed!"); // Debugging
+            }
+        });
+    </script>
+</body>
+
+</html>

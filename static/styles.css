@@ -1,0 +1,43 @@
+/* Container with thick black border around the first set of lines */
+.bordered-container {
+    border: 8px solid black; /* Thickness of the border */
+    padding: 20px; /* Optional padding inside the border */
+    margin: 20px auto; /* Centers the container and adds space outside */
+    text-align: center;
+    display: inline-block;
+    background-color: white; /* Optional: Add background color if needed */
+}
+
+/* General styling for lines inside the bordered container */
+.line {
+    text-align: center;
+    margin: 10px 0;
+    white-space: nowrap;
+    display: block;
+    font-family: "Georgia", serif; /* Fixed font-family property */
+    line-height: 1.5;
+}
+
+/* Center the text container */
+#text-container {
+    text-align: center;
+}
+
+/* Specific styling for the first set of lines */
+.first-set .line {
+    display: block;
+    text-align: center;
+    margin: 10px 0;
+}
+
+/* Hide the original lines container text by setting the color to white */
+#original-lines-container .line {
+    display: inline-block;
+    margin: 5px 0;
+    color: white; /* Set color to match the background, effectively hiding the text */
+}
+
+/* Hide the lengths by setting the color to white */
+#lengths {
+    color: white; /* Set color to match the background, effectively hiding the text */
+}
